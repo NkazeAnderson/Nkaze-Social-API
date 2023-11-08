@@ -6,6 +6,9 @@ let mongoose = require("mongoose");
 let mongodbSessionConnect = require("connect-mongodb-session")(session);
 let userRoute = require("./Routes/Users");
 let authRoute = require("./Routes/Auth");
+let postRoute = require("./Routes/Post");
+const commentRoute = require("./Routes/Comment");
+const AppError = require("./ErrorHandler/customError");
 
 require("dotenv").config();
 let dbURl = process.env.MongoDB_Url;
@@ -18,10 +21,23 @@ const session_Store = mongodbSessionConnect({
   uri: dbURl,
   collection: "Sessions",
 });
+
+mongoose.set("toJSON", { virtuals: true });
+
 session_Store.on("error", (err) =>
   console.log("error connecting to session store")
 );
-
+const authenticated = async (req, res, next) => {
+  try {
+    if (!req.session.user) {
+      throw new AppError(400, "Please log in");
+    } else {
+      next();
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 function bodyTrimmer(req, res, next) {
   if (
     req.method === "POST" ||
@@ -50,6 +66,8 @@ app.use(bodyTrimmer);
 
 app.use("/user", userRoute);
 app.use("/auth", authRoute);
+app.use("/post", authenticated, postRoute);
+app.use("/comment", authenticated, commentRoute);
 
 app.get("/", (req, res) => {
   res.send("welcome to backend");

@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const errorHandler = require("../ErrorHandler/index");
 const AppError = require("../ErrorHandler/customError");
+const mongoose = require("mongoose");
 
 // middleware
 const store = multer.diskStorage({
@@ -77,9 +78,16 @@ const userNotExist = async (req, res, next) => {
 
 const specialUpdate = async (req, res, next) => {
   try {
-    if (req.body._id || req.body.password || req.body.email || req.body.phone) {
-      if (req.body._id) {
-        throw new AppError(403, "Can't change id");
+    if (
+      req.body.isOnline ||
+      req.body.isAdmin ||
+      req.body._id ||
+      req.body.password ||
+      req.body.email ||
+      req.body.phone
+    ) {
+      if (req.body.isOnline || req.body.isAdmin || req.body._id) {
+        throw new AppError(403, "Unathorized");
       }
       if (req.body.password) {
         if (req.body.password.length < 8) {
@@ -110,16 +118,16 @@ const userExist = async (req, res, next) => {
     if (idLength != 24) {
       throw new AppError(400, "Invalid id");
     }
-    const user = await userModel.findById(req.params.id);
+
+    const user = await userModel
+      .findById(req.params.id)
+      .populate("followers", "_id first_name last_name profile_pic")
+      .populate("following", "_ id first_name last_name profile_pic");
+
     if (!user) {
       throw new AppError(400, "User does not exits");
     } else {
-      const { password, createdAt, updatedAt, isAdmin, ...public } = user._doc;
-
-      if (public.street && public.city && public.state && public.country) {
-        public.full_address = `${public.street},${public.city},${public.state},${public.country} ${public.zip_code} `;
-      }
-      req.user = public;
+      req.user = user;
       next();
     }
   } catch (err) {
@@ -179,7 +187,7 @@ router.put(
 //update personal info
 //update followings
 router.put(
-  "/:id/:pic",
+  "/:id/change/:pic",
   authenticated,
   userExist,
   isOwnerOrAdmin,
@@ -204,13 +212,17 @@ router.put(
   }
 );
 
-router.put("/:id/follow", authenticated, userExist, async (req, res) => {
+router.put("/:id/follow", authenticated, userExist, async (req, res, next) => {
   const follower = await userModel.findById(req.session.user._id.toString());
   const toBeFollowed = await userModel.findOne({
-    _id: req.user._id.toString(),
+    _id: req.user._id,
   });
+
+  if (req.user._id.toString() == req.session.user._id.toString()) {
+    return next(new AppError(400, "Can't follow yourself"));
+  }
   const isFollowing = follower.following.filter((value) => {
-    return req.user._id.toString() == value;
+    return req.user._id.toString() == value.toString();
   });
   if (isFollowing.length > 0) {
     let followerArray = follower.following.filter((value) => {
@@ -232,8 +244,8 @@ router.put("/:id/follow", authenticated, userExist, async (req, res) => {
     let followerArray = follower.following;
     let toBeFollowedArray = toBeFollowed.followers;
 
-    followerArray.push(req.user._id.toString());
-    toBeFollowedArray.push(req.session.user._id.toString());
+    followerArray.push(req.user._id);
+    toBeFollowedArray.push(req.session.user._id);
     await userModel.findByIdAndUpdate(req.session.user._id.toString(), {
       following: followerArray,
     });
