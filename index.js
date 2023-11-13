@@ -8,6 +8,8 @@ let userRoute = require("./Routes/Users");
 let authRoute = require("./Routes/Auth");
 let postRoute = require("./Routes/Post");
 const commentRoute = require("./Routes/Comment");
+const messageRoute = require("./Routes/Message");
+const conversationRoute = require("./Routes/Conversation");
 const AppError = require("./ErrorHandler/customError");
 
 require("dotenv").config();
@@ -68,6 +70,8 @@ app.use("/user", userRoute);
 app.use("/auth", authRoute);
 app.use("/post", authenticated, postRoute);
 app.use("/comment", authenticated, commentRoute);
+app.use("/message", authenticated, messageRoute);
+app.use("/conversation", authenticated, conversationRoute);
 
 app.get("/", (req, res) => {
   res.send("welcome to backend");

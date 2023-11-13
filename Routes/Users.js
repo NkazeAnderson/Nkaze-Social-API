@@ -138,6 +138,17 @@ const userExist = async (req, res, next) => {
 // create a user
 router.post("/", userNotExist, async (req, res, next) => {
   try {
+    if (
+      !(
+        req.body.first_name &&
+        req.body.last_name &&
+        req.body.email &&
+        req.body.phone &&
+        req.body.password
+      )
+    ) {
+      throw new AppError(400, "Include names, email, phone and password");
+    }
     const salt = await bcrypt.genSalt(10);
     const password = await bcrypt.hash(req.body.password, salt);
     const userIns = new userModel({
