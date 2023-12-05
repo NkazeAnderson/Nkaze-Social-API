@@ -81,6 +81,6 @@ app.use(errorHandler);
 app.get("/api/", (req, res) => {
   res.send("welcome to backend");
 });
-app.listen(5000, () => {
-  console.log("Backend started on port 5000");
+app.listen(process.env.Site_Port, () => {
+  console.log(`Backend started on port ${process.env.Site_Port}`);
 });
