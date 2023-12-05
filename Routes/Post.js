@@ -58,7 +58,16 @@ const postExist = async (req, res, next) => {
     const post = await postModel
       .findById(req.params.id)
       .populate("owner", "_id first_name last_name profile_pic")
-      .populate("like_by", "_ id first_name last_name profile_pic");
+      .populate("like_by", "_ id first_name last_name profile_pic")
+      .populate({
+        path: "comments",
+        populate: {
+          path: "owner",
+          select: "first_name last_name profile_pic",
+          options: {sort:{"createdAt": -1}}
+        },
+        options: {sort:{"createdAt": -1}},
+      });
 
     if (!post) {
       throw new AppError(400, "Post does not exits");
@@ -76,6 +85,7 @@ router.post("/", async (req, res, next) => {
   try {
     uploadImages(req, res, async (err) => {
       if (err) {
+        console.log(err)
         throw new Error("Can't Upload");
       }
       const files = req.files;
@@ -108,12 +118,41 @@ router.get("/trending", async (req, res, next) => {
       .sort("-count_like -comment_count -createdAt")
       .limit(10)
       .populate({
+        path: "owner",
+        select: "first_name last_name profile_pic",
+      })
+      .populate({
         path: "comments",
         populate: {
           path: "owner",
-          select: "isOnline first_name last_name profile_pic",
+          select: "first_name last_name profile_pic",
         },
-      });
+        options: {sort:{"createdAt": -1}}
+      })
+      .populate("like_by", "_ id first_name last_name profile_pic")
+    return res.status(200).json(trending);
+  } catch (err) {
+    next(err);
+  }
+});
+router.get("/timeline/:id", async (req, res, next) => {
+  try {
+    const trending = await postModel
+      .find({owner: req.params.id})
+      .sort("-createdAt")
+      .populate({
+        path: "owner",
+        select: "first_name last_name profile_pic",
+      })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "owner",
+          select: "first_name last_name profile_pic",
+        },
+        options: {sort:{"createdAt": -1}}
+      })
+      .populate("like_by", "_ id first_name last_name profile_pic")
     return res.status(200).json(trending);
   } catch (err) {
     next(err);

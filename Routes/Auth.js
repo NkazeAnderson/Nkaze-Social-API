@@ -27,7 +27,7 @@ router.post("/login", async (req, res, next) => {
 
     //need send otp
     req.session.user = user;
-    res.status(200).json({ message: "Successful log in" });
+    res.status(200).json({ user: user._id });
   } catch (err) {
     next(err);
   }
@@ -66,5 +66,17 @@ router.get("/verify/:token", async (req, res, next) => {
     next(err);
   }
 });
+router.get("/check", (req, res)=>{
+  if (req.session.user){
+    const { password, isAdmin, isOnline, createdAt, updatedAt, ...public } =
+    req.session.user;
+    res.status(200).json({"logged_in": true,
+    user: public}
+    )
+  }
+  else {
+    res.status(400).json({"logged_in": false})
+  }
+})
 router.use(errorHandler);
 module.exports = router;

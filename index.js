@@ -61,19 +61,23 @@ app.use(
     store: session_Store,
     saveUninitialized: false,
     resave: false,
+    rolling: true,
+    cookie: {
+      maxAge: 155 * 60 * 1000,
+    },
   })
 );
 
 app.use(bodyTrimmer);
+app.use("/files",express.static('Uploads'));
+app.use("/api/user", userRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/post", authenticated, postRoute);
+app.use("/api/comment", authenticated, commentRoute);
+app.use("/api/message", authenticated, messageRoute);
+app.use("/api/conversation", authenticated, conversationRoute);
 
-app.use("/user", userRoute);
-app.use("/auth", authRoute);
-app.use("/post", authenticated, postRoute);
-app.use("/comment", authenticated, commentRoute);
-app.use("/message", authenticated, messageRoute);
-app.use("/conversation", authenticated, conversationRoute);
-
-app.get("/", (req, res) => {
+app.get("/api/", (req, res) => {
   res.send("welcome to backend");
 });
 app.listen(5000, () => {

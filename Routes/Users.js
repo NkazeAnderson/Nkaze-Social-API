@@ -127,7 +127,9 @@ const userExist = async (req, res, next) => {
     if (!user) {
       throw new AppError(400, "User does not exits");
     } else {
-      req.user = user;
+      const { password, isAdmin, isOnline, createdAt, updatedAt, ...public } =
+        user._doc;
+      req.user = public;
       next();
     }
   } catch (err) {
