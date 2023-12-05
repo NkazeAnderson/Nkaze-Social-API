@@ -11,6 +11,7 @@ const commentRoute = require("./Routes/Comment");
 const messageRoute = require("./Routes/Message");
 const conversationRoute = require("./Routes/Conversation");
 const AppError = require("./ErrorHandler/customError");
+const errorHandler = require("./ErrorHandler");
 
 require("dotenv").config();
 let dbURl = process.env.MongoDB_Url;
@@ -76,7 +77,7 @@ app.use("/api/post", authenticated, postRoute);
 app.use("/api/comment", authenticated, commentRoute);
 app.use("/api/message", authenticated, messageRoute);
 app.use("/api/conversation", authenticated, conversationRoute);
-
+app.use(errorHandler);
 app.get("/api/", (req, res) => {
   res.send("welcome to backend");
 });

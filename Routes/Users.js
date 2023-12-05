@@ -252,7 +252,7 @@ router.put("/:id/follow", authenticated, userExist, async (req, res, next) => {
       followers: toBeFollowedArray,
     });
 
-    res.status(200).json({ message: "Successully Unfollowed" });
+    res.status(200).json({ message: "Unfollowed" });
   } else {
     let followerArray = follower.following;
     let toBeFollowedArray = toBeFollowed.followers;
@@ -265,7 +265,7 @@ router.put("/:id/follow", authenticated, userExist, async (req, res, next) => {
     await userModel.findByIdAndUpdate(req.user._id.toString(), {
       followers: toBeFollowedArray,
     });
-    res.status(400).json({ message: "Successfully followed" });
+    res.status(200).json({ message: "Followed" });
   }
 });
 //delete a user
