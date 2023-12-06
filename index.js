@@ -12,9 +12,11 @@ const messageRoute = require("./Routes/Message");
 const conversationRoute = require("./Routes/Conversation");
 const AppError = require("./ErrorHandler/customError");
 const errorHandler = require("./ErrorHandler");
+const cors = require("cors")
 
 require("dotenv").config();
 let dbURl = process.env.MongoDB_Url;
+
 
 mongoose
   .connect(dbURl)
@@ -54,6 +56,11 @@ function bodyTrimmer(req, res, next) {
   next();
 }
 app = express();
+app.use(cors({
+  origin: process.env.Front_End_Url,
+  optionsSuccessStatus: 200,
+  credentials:true
+}))
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(
