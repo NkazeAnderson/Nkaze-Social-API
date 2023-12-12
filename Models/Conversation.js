@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const messageModel = require("../Models/Message");
 
 const ConversationSchema = new mongoose.Schema(
   {
@@ -14,7 +15,24 @@ const ConversationSchema = new mongoose.Schema(
     },
   },
 
-  { timestamps: true }
+  { timestamps: true,
+  }
 );
+
+ConversationSchema.virtual("unread",{
+  ref: "Message",
+  localField: "_id",
+  foreignField: "conversation_id",
+  match:{viewed:false},
+  count: true
+})
+
+ConversationSchema.virtual("messages",{
+  ref: "Message",
+  localField: "_id",
+  foreignField: "conversation_id",
+})
+
+
 
 module.exports = mongoose.model("Conversation", ConversationSchema);

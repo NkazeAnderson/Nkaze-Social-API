@@ -59,8 +59,10 @@ router.get("/", async (req, res, next) => {
         ],
       })
       .populate("sender", "_id first_name last_name profile_pic")
-      .populate("reciever", "_ id first_name last_name profile_pic");
-
+      .populate("reciever", "_ id first_name last_name profile_pic")
+      .populate({path: "messages", select: "message -_id media -conversation_id", options:{sort: "-createdAt", limit: 1}})
+      .populate("unread");
+    
     return res.status(200).json({ conversations: conversations });
   } catch (err) {
     next(err);
@@ -80,5 +82,23 @@ router.get("/:id", conversationExist, async (req, res, next) => {
     next(err);
   }
 });
+
+router.post("/:id/viewed", conversationExist, async (req, res, next)=>{
+  try{
+    messageModel.updateMany({conversation_id: req.params.id, viewed: false}, {viewed:true}).then((res)=>{
+      conversationModel.findByIdAndUpdate(req.params.id, {unread: 0})
+      return res.status(200).json({viewed: res.viewed})
+    })
+    .then((r)>{
+
+    })
+    .catch((err)=>{
+      new AppError(400, "Bad Request")
+    })
+  } catch(err){
+    next(err)
+  }
+  
+})
 router.use(errorHandler);
 module.exports = router;

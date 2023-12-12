@@ -147,9 +147,11 @@ router.post("/", async (req, res, next) => {
           : conversation._id.toString(),
         message: req.body.message,
         media: filesPath,
+        sender: req.session.user._id
       });
       await message.save();
       !checkConversation
+
         ? res
             .status(200)
             .json({ conversation_id: message.conversation_id.toString() })
@@ -163,6 +165,5 @@ router.post("/", async (req, res, next) => {
 router.get("/", (req, res) => {
   res.send("welcome to messages");
 });
-
 router.use(errorHandler);
 module.exports = router;

@@ -12,6 +12,8 @@ const messageSchema = new mongoose.Schema(
       required: true,
     },
     media: Array,
+    sender: String,
+    viewed: {type: Boolean, default: false}
   },
 
   { timestamps: true }
