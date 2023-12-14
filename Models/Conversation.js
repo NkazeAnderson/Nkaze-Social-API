@@ -23,8 +23,7 @@ ConversationSchema.virtual("unread",{
   ref: "Message",
   localField: "_id",
   foreignField: "conversation_id",
-  match:{viewed:false},
-  count: true
+  match:{viewed:false}
 })
 
 ConversationSchema.virtual("messages",{

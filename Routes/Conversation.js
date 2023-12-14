@@ -61,7 +61,7 @@ router.get("/", async (req, res, next) => {
       .populate("sender", "_id first_name last_name profile_pic")
       .populate("reciever", "_ id first_name last_name profile_pic")
       .populate({path: "messages", select: "message -_id media -conversation_id", options:{sort: "-createdAt", limit: 1}})
-      .populate("unread");
+      .populate({path: "unread", match: {viewed: false, sender: {$ne: req.session.user._id}}, select: "_id -conversation_id"});
     
     return res.status(200).json({ conversations: conversations });
   } catch (err) {
@@ -72,11 +72,16 @@ router.get("/", async (req, res, next) => {
 router.get("/:id", conversationExist, async (req, res, next) => {
   try {
     const conversation = req.conversation;
+    const unread = await messageModel.updateMany({viewed:false, sender: {$ne: req.session.user._id}},{viewed: true})
+   // console.log(req.session.user._id)
+   // const unread = await messageModel.find({viewed:false, sender: {$ne: req.session.user._id}})
+    // console.log(unread)
     const messages = await messageModel
       .find({
         conversation_id: conversation._id.toString(),
       })
-      .populate("conversation_id");
+      .populate({path: "conversation_id", populate: {path: "sender", select: "_id first_name last_name profile_pic"}})
+      .populate({path: "conversation_id", populate: {path: "reciever", select: "_id first_name last_name profile_pic"}});
     return res.status(200).json({ messages: messages });
   } catch (err) {
     next(err);

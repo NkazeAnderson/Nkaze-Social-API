@@ -96,7 +96,8 @@ const uploadImages = uploads.array("files", 5);
 router.post("/", async (req, res, next) => {
   try {
     uploadImages(req, res, async (err) => {
-      const idLength = req.body.reciever.toString().length;
+      try{
+        const idLength = req.body.reciever.toString().length;
 
       if (idLength != 24) {
         throw new AppError(400, "Invalid id");
@@ -119,7 +120,7 @@ router.post("/", async (req, res, next) => {
         });
       }
       if (!files && !req.body.message) {
-        throw new AppError(400, "Add text or files to the post");
+        throw new AppError(400, "Add text or files to the message");
       }
       const conversation = await new conversationModel({
         sender: req.session.user._id.toString(),
@@ -141,6 +142,7 @@ router.post("/", async (req, res, next) => {
       if (!checkConversation) {
         await conversation.save();
       }
+
       const message = await new messageModel({
         conversation_id: checkConversation
           ? checkConversation._id.toString()
@@ -157,8 +159,14 @@ router.post("/", async (req, res, next) => {
             .json({ conversation_id: message.conversation_id.toString() })
         : res.status(200).json({ message: "message sent" });
       return;
+      }
+      catch(err){
+        next(err);
+      }
+      
     });
-  } catch (err) {
+  } 
+  catch (err) {
     next(err);
   }
 });
